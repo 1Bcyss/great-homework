@@ -1,0 +1,60 @@
+小美是一个很有名的美容师，她每天都会接到很多预约请求，每个预约都可以选择接或不接。在每次预约服务之间要有休息时间，因此她不能接受相邻的预约。给定一个预约请求序列，替美容师找到最优的预约集合（总预约时间最长），返回总的分钟数。
+
+Input
+一个数字序列，用逗号分割，每个数字代表一个预约请求
+
+Output
+总预约时间最大的数
+
+Sample Input 1 
+
+2,1,4,5,3,1,1,3
+Sample Output 1
+
+12
+选择 1 号预约、 3 号预约、 5 号预约和 8 号预约，总时长 = 2 + 4 + 3 + 3 = 12。
+import java.util.*;
+import java.util.ArrayList;
+
+public class Main {
+    public static int massage(int[] nums) {
+        //子问题：最后一个预约的最长总预约时间f[i]=max(f[i-2]+nums[i],f[i-1])
+
+        int len = nums.length;
+        if (len == 0) {
+            return 0;
+        }
+        if (len == 1) {
+            return nums[0];
+        }
+
+        //数组个数：f[0],f[1]…f[n-1]共n个
+        int[] f = new int[len];
+
+        //初值
+        f[0] = nums[0];
+        f[1] = Math.max(nums[0], nums[1]);
+        for (int i = 2; i < len; i++) {
+            f[i] = Math.max(f[i - 2] + nums[i], f[i - 1]);
+        }
+        return f[len - 1];
+    }
+
+    public static void main(String[] args) {
+        Scanner snc = new Scanner(System.in);
+        String input=snc.nextLine();
+        //parts是输入的数字 但是存储类型是 String
+        String[] parts = input.split(",");
+        /*
+这行代码的作用是将字符串数组 parts 中的每个元素转换为整数，并将这些整数存储在一个新的整数数组中。具体分解如下：
+Arrays.stream(parts)：将字符串数组 parts 转换为一个流（Stream）。流是 Java 8 引入的用于处理集合的功能，可以进行一系列操作，比如过滤、映射等。
+.mapToInt(Integer::parseInt)：这是一个映射操作，将流中的每个字符串元素转换为整数。Integer::parseInt 是一种方法引用，它表示将每个字符串传递给 Integer.parseInt 方法进行转换。
+.toArray()：将流中的整数收集到一个新的整数数组中并返回。
+         */
+        int[] nums = Arrays.stream(parts).mapToInt(Integer::parseInt).toArray();
+        System.out.println(massage(nums));
+
+    }
+
+
+    }
