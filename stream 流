@@ -1,0 +1,219 @@
+知乎链接 https://zhuanlan.zhihu.com/p/141588699
+Java 8 API添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。本文就来介绍下如何使用Stream。
+
+本文围绕 Stream是什么、为什么、怎么做来谈：
+
+Stream 是什么
+
+Java 8 API 添加了一个新的抽象称为流Stream，可以让你以一种声明的方式处理数据。
+
+这种风格将要处理的元素集合看作一种流， 流在管道中传输， 并且可以在管道的节点上进行处理， 比如筛选， 排序，聚合等。类似用 SQL 语句从数据库查询数据的直观方式来提供一种对 Java 集合运算和表达的高阶抽象。
+
+元素流在被创建之后，在管道中经过中间操作（intermediate operation）的处理，最后由最终操作(terminal operation)得到前面处理的结果。
+
+Stream有以下特性及优点：
+
+无存储。Stream不是一种数据结构，它只是某种数据源的一个视图，数据源可以是一个数组，Java容器或I/O channel等。为函数式编程而生。对Stream的任何修改都不会修改背后的数据源，比如对Stream执行过滤操作并不会删除被过滤的元素，而是会产生一个不包含被过滤元素的新Stream。惰式执行。Stream上的操作并不会立即执行，只有等到用户真正需要结果的时候才会执行。可消费性。Stream只能被“消费”一次，一旦遍历过就会失效，就像容器的迭代器那样，想要再次遍历必须重新生成。
+
+
+我们举一个例子，来看一下到底Stream可以做什么事情：
+
+
+
+上面的例子中，获取一些带颜色塑料球作为数据源，首先过滤掉红色的、把它们融化成随机的三角形。再过滤器并删除小的三角形。最后计算出剩余图形的周长。
+
+如上图，对于流的处理，主要有三种关键性操作：分别是流的创建、中间操作（intermediate operation）以及最终操作(terminal operation)。
+
+为什么
+
+Stream API可以极大提高Java程序员的生产力，让程序员写出高效率、干净、简洁的代码。
+
+更具体一点，Stream 解放了程序员操作集合（Collection）时的生产力，轻松完成集合的筛选， 排序，聚合等操作。同时，极大提高编程效率和代码可读性。
+
+怎么做
+
+流的处理，主要有三种关键性操作：分别是流的创建、中间操作（intermediate operation）以及最终操作(terminal operation)。
+
+
+
+
+流的创建
+
+
+流的创建有两种方式。如果是集合的话，可以直接使用 stream() 方法创建流，因为该方法已经添加到 Collection 接口中。如果是数组的话，可以使用 Arrays.stream() 或者 Stream.of() 创建流；
+
+public class streamTest {
+    public static void main(String[] args) {
+        //直接通过集合的stream接口创建
+        List<String> roles = Arrays.asList("鲁班七号", "伽罗", "云中君");
+        Stream<String> stream = roles.stream();
+        //Arrays.stream() 创建流
+        String[] roles2 = {"鲁班七号", "伽罗", "云中君"};
+        Stream<String> stream2 = Arrays.stream(roles2);
+        //Stream.of() 创建流
+        Stream<String> stream3 = Stream.of("鲁班七号", "伽罗", "云中君");
+    }
+}
+
+
+
+
+
+中间操作
+
+可以将Stream的中间操作看成一条工厂的流水线，可以有多个操作（即进行链式操作）。每次操作返回一个新的流，即最后喂给最终操作的依然是个stream对象。
+
+
+
+
+
+
+常见中间操作：
+
+
+
+filter 根据判断条件过滤元素
+
+普通：
+
+List<UserDO> resultList = new ArrayList<>();
+for (UserDO user : userList) {
+    if (Boolean.TRUE.equals(user.getIsSuper())) {
+        resultList.add(user);
+    }
+}
+
+stream：
+
+List<UserDO> resultList = userList.stream()
+    .filter(user -> Boolean.TRUE.equals(user.getIsSuper()))
+    .collect(Collectors.toList());
+
+
+distinct 去重
+
+List<String> roles = Arrays.asList("鲁班七号", "伽罗", "云中君", "鲁班七号");
+roles.stream()
+        .distinct()
+        .forEach(System.out::println);
+
+输出
+
+鲁班七号
+伽罗
+云中君
+
+map 映射每个元素到对应的方法
+
+List<String> roles = Arrays.asList("鲁班七号", "伽罗", "云中君", "鲁班七号");
+        roles.stream()
+                .map(i -> i+"5杀")
+                .forEach(System.out::println);
+
+输出
+
+鲁班七号5杀
+伽罗5杀
+云中君5杀
+鲁班七号5杀
+
+sorted 排序
+
+List<Integer> numbers = Arrays.asList(3, 2, 1);
+numbers.stream()
+        .sorted()
+        .forEach(System.out::println);
+
+输出
+
+1
+2
+3
+
+
+
+
+limit/skip：limit 返回 Stream 的前面 n 个元素；skip 则是扔掉前 n 个元素。
+
+
+最终操作
+
+流的最终操作只能有一个，每次执行完，这个流也就用光光了，无法再执行下一个操作，因此只能放在最后。
+
+
+
+
+
+
+anyMatch 根据条件返回是否有匹配的结果
+普通：
+
+boolean isFound = false;
+for (UserDO user : userList) {
+    if (Objects.equals(user.getId(), userId)) {
+        isFound = true;
+        break;
+    }
+}
+
+
+stream：
+
+boolean isFound = userList.stream()
+    .anyMatch(user -> Objects.equals(user.getId(), userId));
+
+allMatch：只要有一个元素不匹配传入的条件，就返回 false；如果全部匹配，则返回true。
+
+noneMatch：只要有一个元素匹配传入的条件，就返回 false；如果全部不匹配，则返回 true。
+
+reduce 把元素组合起来
+
+List<Integer> nums = Arrays.asList(1, 2, 3, 4);
+int result = nums.stream().reduce(10, (a, b) -> a + b);
+System.out.println(result);
+
+输出
+
+20
+
+forEach 迭代流中的每个元素
+
+List<String> roles = Arrays.asList("鲁班七号", "伽罗", "云中君", "鲁班七号");
+        roles.stream()
+                .forEach(System.out::println);
+
+
+输出
+
+鲁班七号
+伽罗
+云中君
+鲁班七号
+
+collect 将流中的元素汇总
+
+List<UserDO> resultList = userList.stream()
+    .filter(user -> Boolean.TRUE.equals(user.getIsSuper()))
+    .collect(Collectors.toList());
+
+count 计数
+
+List<String> roles = Arrays.asList("鲁班七号", "伽罗", "云中君", "鲁班七号");
+System.out.println(roles.stream().count());
+
+输出
+
+4
+
+总结
+
+
+Stream 将要处理的元素集合看作一种流， 流在管道中传输， 并且可以在管道的节点上进行处理， 比如筛选， 排序，聚合等。这极大提高编程效率和代码可读性。
+
+流的处理，主要有三种关键性操作：分别是流的创建、中间操作以及最终操作。
+
+流的创建有两种方式。如果是集合的话，可以直接使用 stream() 方法创建流，因为该方法已经添加到 Collection 接口中。如果是数组的话，可以使用 Arrays.stream() 或者 Stream.of() 创建流；
+
+Stream的中间操作可以用来处理Stream，中间操作的输入和输出都是Stream，中间操作可以是过滤、映射、排序等。
+
+Stream的最终操作可以将Stream转成其他形式，如计算出流中元素的个数、将流装换成集合、以及元素的遍历等。
